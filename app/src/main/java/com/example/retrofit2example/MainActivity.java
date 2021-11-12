@@ -5,18 +5,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.example.retrofit2example.model.PostModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.rxjava3.subscribers.DisposableSubscriber;
 
 public class MainActivity extends AppCompatActivity {
+
+    private final String TAG = "TAG";
 
     RecyclerView recyclerView;
     List<PostModel> posts;
@@ -35,20 +38,29 @@ public class MainActivity extends AppCompatActivity {
         PostsAdapter adapter = new PostsAdapter(posts);
         recyclerView.setAdapter(adapter);
 
-        App.getApi().getData("bash", 50).enqueue(new Callback<List<PostModel>>() {
-            @Override
-            public void onResponse(Call<List<PostModel>> call, Response<List<PostModel>> response) {
-                posts.addAll(response.body());
-                posts.remove(0); // для того чтобы в приложении не было сообщения "n цитат сегодня, m подтверждено"
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
+        Flowable<List<PostModel>> flowable = App.getApi().getData("bash", 50);
 
-            @Override
-            public void onFailure(Call<List<PostModel>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Возникла ошибка сети", Toast.LENGTH_SHORT).show();
-            }
-        });
+        flowable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableSubscriber<List<PostModel>>() {
+                    @Override
+                    public void onNext(List<PostModel> postModels) {
+                        postModels.remove(0);
+                        posts.addAll(postModels);
+                        recyclerView.getAdapter().notifyDataSetChanged();
+                    }
 
+                    @Override
+                    public void onError(Throwable t) {
+                        Log.d(TAG, "flowable error: " + t.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d(TAG, "flowable is completed");
+                    }
+                });
     }
 
 
