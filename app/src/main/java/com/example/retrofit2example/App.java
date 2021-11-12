@@ -2,6 +2,8 @@ package com.example.retrofit2example;
 
 import android.app.Application;
 
+import com.example.retrofit2example.api.UmoriliApi;
+
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 

@@ -1,4 +1,6 @@
-package com.example.retrofit2example;
+package com.example.retrofit2example.api;
+
+import com.example.retrofit2example.model.PostModel;
 
 import java.util.List;
 
