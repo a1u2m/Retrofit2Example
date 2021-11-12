@@ -40,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
 
         Flowable<List<PostModel>> flowable = App.getApi().getData("bash", 50);
 
+        //test
+
         flowable
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
